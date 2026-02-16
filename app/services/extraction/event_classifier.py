@@ -184,7 +184,7 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
                 type="comment",
                 actor=actor,
                 at=at,
-                text=f'Comment added: "{c}"',
+                text=c,
                 field="comment",
                 old=None,
                 new=None,

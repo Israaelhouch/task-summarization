@@ -22,9 +22,11 @@ def extract_activity_events(activity: List[Dict[str, Any]]) -> Tuple[List[Activi
     # sort by timestamp (None last)
     events.sort(key=lambda e: (e.at is None, e.at))
 
+    last_activity_at = max((e.at for e in events if e.at), default=None)
+
     meta = SummaryMeta(
         events_count=len(events),
         comments_count=sum(1 for e in events if e.type == "comment"),
-        last_activity_at=events[-1].at if events else None,
+        last_activity_at=last_activity_at,
     )
     return events, meta

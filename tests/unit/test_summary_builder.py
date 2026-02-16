@@ -33,5 +33,6 @@ def test_summary_builder_basic():
     summary = build_summary(snapshot, events, meta)
 
     assert "Build summarization" in summary
-    assert "Status changed" in summary
+    assert "changed status from To Do to In Progress" in summary
+    assert "@softy" in summary
     assert "No comments were added." in summary

@@ -19,6 +19,7 @@ def build_summary(
     sections = [
         build_snapshot_section(snapshot),
         build_activity_section(events),
+        build_comment_section(meta),
         build_meta_section(meta),
     ]
 

@@ -33,6 +33,24 @@ def _extract_status(task: Dict[str, Any]) -> Optional[str]:
     return _as_str(raw)
 
 
+def _extract_priority(task: Dict[str, Any]) -> Optional[str]:
+    """
+    Accepts:
+      - "High"
+      - {"id": "...", "name": "High", ...}
+    Returns:
+      - "High" or None
+    """
+    raw = task.get("priority")
+    if raw is None:
+        return None
+    if isinstance(raw, str):
+        return _as_str(raw)
+    if isinstance(raw, dict):
+        return _as_str(raw.get("name") or raw.get("label") or raw.get("title"))
+    return _as_str(raw)
+
+
 def _extract_assignees(task: Dict[str, Any]) -> List[str]:
     """
     Your payload uses `users` as the assigned users list.
@@ -198,7 +216,7 @@ def _format_estimation(est: Any) -> Optional[str]:
 def extract_task_snapshot(task: Dict[str, Any]) -> TaskSnapshot:
     name = _as_str(task.get("name") or task.get("title")) or "Untitled task"
     status = _extract_status(task)
-    priority = task.get("priority")
+    priority = _extract_priority(task)
     start_date = parse_dt(task.get("startDate") or task.get("start_date"))
     due_date = parse_dt(task.get("dueDate") or task.get("due_date"))
 
