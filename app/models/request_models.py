@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class TaskSummarizeRequest(BaseModel):
@@ -12,5 +12,5 @@ class TaskSummarizeRequest(BaseModel):
     task: Dict[str, Any] = Field(..., description="Task snapshot (current state).")
     activity: List[Dict[str, Any]] = Field(default_factory=list, description="Chronological task activity log.")
 
-    class Config:
-        extra = "allow"  # accept extra fields at top level
+    model_config = ConfigDict(extra="allow")
+
