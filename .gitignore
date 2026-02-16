@@ -1,19 +1,16 @@
-
-# Python
+# Virtual environments
 .venv/
+venv/
+.env/
+
+# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
+
+# Pytest
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.dist/
+
+# Distribution / packaging
+*.egg-info/
+dist/
 build/
-*.egg-info/
-
-# Packaging
-*.egg-info/
-
-# Caches
-**/__pycache__/
