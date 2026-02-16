@@ -12,7 +12,7 @@ def _fmt_date(dt: Optional[datetime]) -> Optional[str]:
     if not dt:
         return None
     # you can change formatting later (locale, etc.)
-    return dt.strftime("%b %d, %Y")
+    return dt.strftime("%d/%m/%Y")
 
 
 def _join_clauses(clauses: Iterable[str]) -> str:
@@ -42,12 +42,12 @@ def build_snapshot_section(snapshot: TaskSnapshot) -> str:
     intro = f'This task "{snapshot.name}"'
     if snapshot.description:
         desc = snapshot.description.strip().rstrip(".")
-        intro += f" has the following description: {desc}"
+        intro += f" involves: {desc}"
     sentences.append(intro + ".")
 
     details: List[str] = []
     if snapshot.status:
-        details.append(f"is currently {snapshot.status.lower()}")
+        details.append(f"is currently {snapshot.status}")
     if snapshot.assignees:
         assignees = ", ".join([mention(a) or a for a in snapshot.assignees])
         details.append(f"assigned to {assignees}")
@@ -63,10 +63,10 @@ def build_snapshot_section(snapshot: TaskSnapshot) -> str:
         date_bits.append(f"Work began on {_fmt_date(snapshot.start_date)}")
     if snapshot.due_date:
         date_bits.append(f"the due date is {_fmt_date(snapshot.due_date)}")
-    if snapshot.estimation:
-        date_bits.append(f"estimate is {snapshot.estimation}")
     if date_bits:
         sentences.append(f"{_join_clauses(date_bits)}.")
+    if snapshot.estimation:
+        sentences.append(f"Estimated effort: {snapshot.estimation}.")
 
     return " ".join(sentences).strip()
 

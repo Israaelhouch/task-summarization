@@ -6,7 +6,7 @@ from typing import Optional
 def format_date(dt: Optional[datetime]) -> Optional[str]:
     if not dt:
         return None
-    return dt.strftime("%b %d, %Y")
+    return dt.strftime("%d/%m/%Y")
 
 
 def mention(user: Optional[str]) -> Optional[str]:

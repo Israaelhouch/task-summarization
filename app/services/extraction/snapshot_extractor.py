@@ -90,7 +90,7 @@ def _extract_assignees(task: Dict[str, Any]) -> List[str]:
             continue
 
         if isinstance(a, dict):
-            for key in ("fullName", "username", "handle", "displayName", "name", "email", "id"):
+            for key in ("username", "handle", "fullName", "displayName", "name", "email", "id"):
                 v = _as_str(a.get(key))
                 if v:
                     out.append(v)

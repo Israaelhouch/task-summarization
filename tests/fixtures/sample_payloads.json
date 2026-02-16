@@ -1,0 +1,145 @@
+[
+  {
+    "task": {
+      "name": "API Error Logging",
+      "description": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Log and aggregate errors across services.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1,\"textFormat\":0,\"textStyle\":\"\"}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+      "status": {"name": "In Progress"},
+      "priority": 2,
+      "startDate": "2026-02-05T09:00:00.000Z",
+      "dueDate": "2026-02-20T18:00:00.000Z",
+      "users": [
+        {"username": "maya", "fullName": "Maya Darzi"},
+        {"username": "omar", "fullName": "Omar Hadi"}
+      ],
+      "tags": [{"name": "backend"}, {"name": "observability"}],
+      "estimation": "14400"
+    },
+    "activity": [
+      {
+        "type": "activity",
+        "createdAt": "2026-02-05T09:10:00.000Z",
+        "owner": {"username": "maya", "fullName": "Maya Darzi"},
+        "targetField": "status",
+        "oldValue": {"status": {"name": "To Do"}},
+        "newValue": {"status": {"name": "In Progress"}}
+      },
+      {
+        "type": "activity",
+        "createdAt": "2026-02-06T11:00:00.000Z",
+        "owner": {"username": "omar", "fullName": "Omar Hadi"},
+        "targetField": "tags",
+        "oldValue": {"tags": [{"name": "backend"}]},
+        "newValue": {"tags": [{"name": "backend"}, {"name": "observability"}]}
+      },
+      {
+        "type": "activity",
+        "createdAt": "2026-02-07T14:30:00.000Z",
+        "owner": {"username": "maya", "fullName": "Maya Darzi"},
+        "targetField": "dueDate",
+        "oldValue": {"dueDate": "2026-02-18T18:00:00.000Z"},
+        "newValue": {"dueDate": "2026-02-20T18:00:00.000Z"}
+      },
+      {
+        "type": "comment",
+        "createdAt": "2026-02-08T10:05:00.000Z",
+        "owner": {"username": "omar", "fullName": "Omar Hadi"},
+        "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Added initial error pipeline.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1,\"textFormat\":0,\"textStyle\":\"\"}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}"
+      }
+    ]
+  },
+  {
+    "task": {
+      "name": "Mobile UI Polish",
+      "description": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Refine spacing and typography for settings screens.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1,\"textFormat\":0,\"textStyle\":\"\"}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+      "status": {"name": "To Do"},
+      "priority": 3,
+      "startDate": "2026-02-12T08:00:00.000Z",
+      "dueDate": null,
+      "users": [
+        {"username": "lina", "fullName": "Lina K"}
+      ],
+      "tags": [{"name": "mobile"}, {"name": "ux"}],
+      "estimation": "7200"
+    },
+    "activity": [
+      {
+        "type": "activity",
+        "createdAt": "2026-02-12T09:20:00.000Z",
+        "owner": {"username": "lina", "fullName": "Lina K"},
+        "targetField": "startDate",
+        "oldValue": {"startDate": null},
+        "newValue": {"startDate": "2026-02-12T08:00:00.000Z"}
+      },
+      {
+        "type": "activity",
+        "createdAt": "2026-02-13T15:00:00.000Z",
+        "owner": {"username": "lina", "fullName": "Lina K"},
+        "targetField": "tags",
+        "oldValue": {"tags": [{"name": "mobile"}]},
+        "newValue": {"tags": [{"name": "mobile"}, {"name": "ux"}]}
+      },
+      {
+        "type": "activity",
+        "createdAt": "2026-02-14T10:10:00.000Z",
+        "owner": {"username": "lina", "fullName": "Lina K"},
+        "targetField": "status",
+        "oldValue": {"status": {"name": "To Do"}},
+        "newValue": {"status": {"name": "In Progress"}}
+      },
+      {
+        "type": "comment",
+        "createdAt": "2026-02-14T11:30:00.000Z",
+        "owner": {"username": "lina", "fullName": "Lina K"},
+        "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Started adjusting typography scale.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1,\"textFormat\":0,\"textStyle\":\"\"}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}"
+      }
+    ]
+  },
+  {
+    "task": {
+      "name": "Data Export CSV",
+      "description": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Enable CSV export for analytics reports.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1,\"textFormat\":0,\"textStyle\":\"\"}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+      "status": {"name": "In Review"},
+      "priority": 1,
+      "startDate": "2026-02-01T10:00:00.000Z",
+      "dueDate": "2026-02-10T17:00:00.000Z",
+      "users": [
+        {"username": "ravi", "fullName": "Ravi Singh"},
+        {"username": "sara", "fullName": "Sara Ng"}
+      ],
+      "tags": [{"name": "data"}, {"name": "export"}],
+      "estimation": "21600"
+    },
+    "activity": [
+      {
+        "type": "activity",
+        "createdAt": "2026-02-01T10:05:00.000Z",
+        "owner": {"username": "ravi", "fullName": "Ravi Singh"},
+        "targetField": "startDate",
+        "oldValue": {"startDate": null},
+        "newValue": {"startDate": "2026-02-01T10:00:00.000Z"}
+      },
+      {
+        "type": "activity",
+        "createdAt": "2026-02-03T12:00:00.000Z",
+        "owner": {"username": "sara", "fullName": "Sara Ng"},
+        "targetField": "tags",
+        "oldValue": {"tags": [{"name": "data"}]},
+        "newValue": {"tags": [{"name": "data"}, {"name": "export"}]}
+      },
+      {
+        "type": "activity",
+        "createdAt": "2026-02-05T16:20:00.000Z",
+        "owner": {"username": "ravi", "fullName": "Ravi Singh"},
+        "targetField": "status",
+        "oldValue": {"status": {"name": "In Progress"}},
+        "newValue": {"status": {"name": "In Review"}}
+      },
+      {
+        "type": "comment",
+        "createdAt": "2026-02-06T09:45:00.000Z",
+        "owner": {"username": "sara", "fullName": "Sara Ng"},
+        "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"CSV export is ready for QA.\",\"type\":\"text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1,\"textFormat\":0,\"textStyle\":\"\"}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}"
+      }
+    ]
+  }
+]
