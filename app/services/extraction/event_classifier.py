@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.models.normalized_models import ActivityEvent
+from app.services.extraction.diff_engine import diff_list, normalize_tags
 from app.utils.date_utils import parse_dt
 from app.utils.text_utils import shorten_text
-from app.services.extraction.diff_engine import normalize_tags, diff_list
 
 
 def _as_str(x: Any) -> Optional[str]:
@@ -16,35 +17,86 @@ def _as_str(x: Any) -> Optional[str]:
 
 
 def _actor(activity_item: Dict[str, Any]) -> Optional[str]:
-    a = activity_item.get("actor") or activity_item.get("user") or activity_item.get("by")
+    # Your payload uses "owner" (not "actor")
+    a = activity_item.get("actor") or activity_item.get("owner") or activity_item.get("user") or activity_item.get("by")
     if isinstance(a, str):
         return _as_str(a)
     if isinstance(a, dict):
-        return _as_str(a.get("username") or a.get("handle") or a.get("displayName") or a.get("name") or a.get("email"))
+        return _as_str(
+            a.get("username")
+            or a.get("handle")
+            or a.get("fullName")
+            or a.get("displayName")
+            or a.get("name")
+            or a.get("email")
+        )
     return None
 
 
 def _timestamp(activity_item: Dict[str, Any]):
-    return parse_dt(activity_item.get("timestamp") or activity_item.get("createdAt") or activity_item.get("at") or activity_item.get("date"))
+    return parse_dt(
+        activity_item.get("timestamp")
+        or activity_item.get("createdAt")
+        or activity_item.get("at")
+        or activity_item.get("date")
+    )
+
+
+def _lexical_to_text(s: str) -> str:
+    """
+    Lexical editor JSON can be stored as a string:
+      {"root": {"children": [...{"type":"text","text":"hello"}...]}}
+    We extract all "text" nodes and join them.
+    """
+    try:
+        obj = json.loads(s)
+    except Exception:
+        return s
+
+    texts: List[str] = []
+
+    def walk(node: Any) -> None:
+        if isinstance(node, dict):
+            if node.get("type") == "text" and isinstance(node.get("text"), str):
+                t = node["text"].strip()
+                if t:
+                    texts.append(t)
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for it in node:
+                walk(it)
+
+    walk(obj)
+    out = " ".join(texts).strip()
+    return out or s
 
 
 def _comment_text(activity_item: Dict[str, Any]) -> Optional[str]:
-    # common keys
+    # Common keys (your payload uses "content")
     for k in ("comment", "message", "text", "body", "content"):
         v = activity_item.get(k)
+
         if isinstance(v, str) and v.strip():
-            return shorten_text(v.strip(), max_len=200)
+            txt = v.strip()
+            if txt.startswith("{") and '"root"' in txt:
+                txt = _lexical_to_text(txt)
+            return shorten_text(txt, max_len=200)
+
         if isinstance(v, dict):
-            # e.g. {"text": "..."}
             inner = v.get("text") or v.get("body") or v.get("content")
             if isinstance(inner, str) and inner.strip():
-                return shorten_text(inner.strip(), max_len=200)
+                txt = inner.strip()
+                if txt.startswith("{") and '"root"' in txt:
+                    txt = _lexical_to_text(txt)
+                return shorten_text(txt, max_len=200)
+
     return None
 
 
 def _field_update_shape(activity_item: Dict[str, Any]) -> Optional[Tuple[str, Any, Any]]:
     """
-    Detect simple update shape:
+    Detect:
       {"field": "status", "old": "To Do", "new": "In Progress"}
     """
     field = activity_item.get("field") or activity_item.get("key")
@@ -59,8 +111,8 @@ def _field_update_shape(activity_item: Dict[str, Any]) -> Optional[Tuple[str, An
 
 def _changes_shape(activity_item: Dict[str, Any]) -> List[Tuple[str, Any, Any]]:
     """
-    Detect changes dict shape:
-      {"changes": {"status": {"from": "...", "to": "..."}, "tags": {"from":[...],"to":[...]}}}
+    Detect:
+      {"changes": {"status": {"from": "...", "to": "..."}}}
     """
     changes = activity_item.get("changes")
     if not isinstance(changes, dict):
@@ -72,9 +124,48 @@ def _changes_shape(activity_item: Dict[str, Any]) -> List[Tuple[str, Any, Any]]:
             new = payload.get("to") if "to" in payload else payload.get("new")
             out.append((str(field), old, new))
         else:
-            # sometimes it's directly the new value
             out.append((str(field), None, payload))
     return out
+
+
+def _targetfield_shape(activity_item: Dict[str, Any]) -> Optional[Tuple[str, Any, Any]]:
+    """
+    Your real payload:
+      {"targetField": "tags", "oldValue": {...}, "newValue": {...}}
+    Normalize to (field, old, new).
+
+    - oldValue/newValue might be full snapshots, OR already the field value.
+    - If dict and contains that field, we take dict[field].
+    """
+    field = activity_item.get("targetField")
+    if not field:
+        return None
+
+    old_v = activity_item.get("oldValue")
+    new_v = activity_item.get("newValue")
+
+    if isinstance(old_v, dict) and str(field) in old_v:
+        old_v = old_v.get(str(field))
+    if isinstance(new_v, dict) and str(field) in new_v:
+        new_v = new_v.get(str(field))
+
+    return str(field), old_v, new_v
+
+
+def _norm_status_value(x: Any) -> Optional[str]:
+    """
+    Status can be:
+      - "To Do"
+      - {"id": "...", "name": "To Do", ...}
+    We want a human string, not the dict printed.
+    """
+    if x is None:
+        return None
+    if isinstance(x, str):
+        return _as_str(x)
+    if isinstance(x, dict):
+        return _as_str(x.get("name") or x.get("label") or x.get("title"))
+    return _as_str(x)
 
 
 def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]:
@@ -85,7 +176,7 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
     at = _timestamp(activity_item)
     events: List[ActivityEvent] = []
 
-    # 1) Comments
+    # 1) Comment (usually "comment" type entries)
     c = _comment_text(activity_item)
     if c:
         events.append(
@@ -93,40 +184,42 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
                 type="comment",
                 actor=actor,
                 at=at,
-                text=f'Comment added: "{c}"',
+                text=c,
                 field="comment",
                 old=None,
                 new=None,
             )
         )
-        return events  # comment entries usually represent only comment
+        return events
 
-    # 2) Field update shapes (single)
-    fu = _field_update_shape(activity_item)
     candidates: List[Tuple[str, Any, Any]] = []
+
+    # 2) Your payload shape
+    tf = _targetfield_shape(activity_item)
+    if tf:
+        candidates.append(tf)
+
+    # 3) Other supported shapes
+    fu = _field_update_shape(activity_item)
     if fu:
         candidates.append(fu)
 
-    # 3) Changes map shapes (multi)
     candidates.extend(_changes_shape(activity_item))
 
-    # 4) If no explicit changes found, try before/after snapshot diff (optional, best-effort)
-    #    {"before": {...}, "after": {...}}
+    # 4) before/after best effort
     before = activity_item.get("before")
     after = activity_item.get("after")
     if isinstance(before, dict) and isinstance(after, dict):
-        # only attempt key fields we care about
         for field in ("status", "priority", "startDate", "dueDate", "tags", "assignees"):
             if field in before or field in after:
                 candidates.append((field, before.get(field), after.get(field)))
 
-    # Build events from candidates
     for field, old, new in candidates:
         f = field.lower()
 
         # status
         if f in ("status", "state"):
-            o, n = _as_str(old), _as_str(new)
+            o, n = _norm_status_value(old), _norm_status_value(new)
             if o != n and (o or n):
                 events.append(
                     ActivityEvent(
@@ -146,6 +239,7 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
             old_tags = normalize_tags(old)
             new_tags = normalize_tags(new)
             added, removed = diff_list(old_tags, new_tags)
+
             for t in added:
                 events.append(
                     ActivityEvent(
@@ -173,7 +267,7 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
             continue
 
         # dates
-        if f in ("startdate", "start_date", "start", "due", "duedate", "due_date"):
+        if f in ("startdate", "start_date", "start", "duedate", "due_date", "due"):
             o_dt = parse_dt(old)
             n_dt = parse_dt(new)
             if o_dt != n_dt and (o_dt or n_dt):
@@ -183,7 +277,11 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
                         type="date_change",
                         actor=actor,
                         at=at,
-                        text=f"{pretty_field.title()} changed",
+                        text=(
+                            f"{pretty_field.title()} changed from "
+                            f"{o_dt.date().isoformat() if o_dt else '—'} to "
+                            f"{n_dt.date().isoformat() if n_dt else '—'}"
+                        ),
                         field=pretty_field,
                         old=o_dt.isoformat() if o_dt else None,
                         new=n_dt.isoformat() if n_dt else None,
@@ -192,8 +290,7 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
             continue
 
         # assignees
-        if f in ("assignees", "assignee"):
-            # best effort: support list of strings or list of dicts with username/name
+        if f in ("assignees", "assignee", "users"):
             def norm_people(x: Any) -> List[str]:
                 if x is None:
                     return []
@@ -208,12 +305,19 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
                         if s:
                             out.append(s)
                     elif isinstance(p, dict):
-                        s = _as_str(p.get("username") or p.get("handle") or p.get("displayName") or p.get("name") or p.get("email"))
+                        s = _as_str(
+                            p.get("username")
+                            or p.get("handle")
+                            or p.get("fullName")
+                            or p.get("displayName")
+                            or p.get("name")
+                            or p.get("email")
+                        )
                         if s:
                             out.append(s)
-                # unique stable
+
                 seen = set()
-                uniq = []
+                uniq: List[str] = []
                 for s in out:
                     if s not in seen:
                         uniq.append(s)
@@ -223,13 +327,33 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
             old_p = norm_people(old)
             new_p = norm_people(new)
             added, removed = diff_list(old_p, new_p)
+
             for u in added:
-                events.append(ActivityEvent(type="assignee_change", actor=actor, at=at, text=f'Assignee "{u}" added', field="assignees", old=None, new=u))
+                events.append(
+                    ActivityEvent(
+                        type="assignee_change",
+                        actor=actor,
+                        at=at,
+                        text=f'Assignee "{u}" added',
+                        field="assignees",
+                        old=None,
+                        new=u,
+                    )
+                )
             for u in removed:
-                events.append(ActivityEvent(type="assignee_change", actor=actor, at=at, text=f'Assignee "{u}" removed', field="assignees", old=u, new=None))
+                events.append(
+                    ActivityEvent(
+                        type="assignee_change",
+                        actor=actor,
+                        at=at,
+                        text=f'Assignee "{u}" removed',
+                        field="assignees",
+                        old=u,
+                        new=None,
+                    )
+                )
             continue
 
-        # ignore other fields by default (spec says ignore noise)
-        # You can extend later.
+        # ignore unknown/noise fields by default
 
     return events

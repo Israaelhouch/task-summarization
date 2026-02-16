@@ -17,4 +17,13 @@ def parse_dt(value: Any) -> Optional[datetime]:
     try:
         return datetime.fromisoformat(s)
     except Exception:
-        return None
+        pass
+
+    # common non-ISO formats
+    for fmt in ("%m/%d/%Y", "%d/%m/%Y", "%Y/%m/%d", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(s, fmt)
+        except Exception:
+            continue
+
+    return None
