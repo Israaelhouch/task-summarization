@@ -42,16 +42,20 @@ def _timestamp(activity_item: Dict[str, Any]):
     )
 
 
-def _lexical_to_text(s: str) -> str:
+def _lexical_to_text(value: Any) -> str:
     """
-    Lexical editor JSON can be stored as a string:
+    Lexical editor JSON can be stored as a string or a parsed object:
       {"root": {"children": [...{"type":"text","text":"hello"}...]}}
     We extract all "text" nodes and join them.
     """
-    try:
-        obj = json.loads(s)
-    except Exception:
-        return s
+    obj = value
+    if isinstance(value, str):
+        try:
+            obj = json.loads(value)
+        except Exception:
+            return value
+    if not isinstance(obj, (dict, list)):
+        return str(obj)
 
     texts: List[str] = []
 
@@ -69,7 +73,11 @@ def _lexical_to_text(s: str) -> str:
 
     walk(obj)
     out = " ".join(texts).strip()
-    return out or s
+    if out:
+        return out
+    if isinstance(value, str):
+        return value
+    return ""
 
 
 def _comment_text(activity_item: Dict[str, Any]) -> Optional[str]:
@@ -84,6 +92,10 @@ def _comment_text(activity_item: Dict[str, Any]) -> Optional[str]:
             return shorten_text(txt, max_len=200)
 
         if isinstance(v, dict):
+            if "root" in v:
+                txt = _lexical_to_text(v)
+                if txt:
+                    return shorten_text(txt, max_len=200)
             inner = v.get("text") or v.get("body") or v.get("content")
             if isinstance(inner, str) and inner.strip():
                 txt = inner.strip()
@@ -190,7 +202,6 @@ def classify_activity_item(activity_item: Dict[str, Any]) -> List[ActivityEvent]
                 new=None,
             )
         )
-        return events
 
     candidates: List[Tuple[str, Any, Any]] = []
 

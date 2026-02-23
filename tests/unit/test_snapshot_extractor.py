@@ -15,3 +15,17 @@ def test_extract_snapshot_assignees_tags():
     snap = extract_task_snapshot(task)
     assert snap.assignees == ["softy", "Hachem"]
     assert snap.tags == ["backend", "ai"]
+
+
+def test_extract_snapshot_lexical_description_dict():
+    lexical = {
+        "root": {
+            "children": [
+                {"children": [{"type": "text", "text": "Lexical description here."}], "type": "paragraph"}
+            ],
+            "type": "root",
+        }
+    }
+    task = {"name": "X", "description": lexical}
+    snap = extract_task_snapshot(task)
+    assert snap.description == "Lexical description here."

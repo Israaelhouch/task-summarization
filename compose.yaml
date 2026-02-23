@@ -1,0 +1,15 @@
+services:
+  api:
+    build: .
+    image: task-summarization
+    container_name: text-summarizer
+    ports:
+      - "8000:8000"
+    environment:
+      - WEB_CONCURRENCY=${WEB_CONCURRENCY:-2}
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-60}
+      - RATE_LIMIT_WINDOW_SECONDS=${RATE_LIMIT_WINDOW_SECONDS:-60}
+      - MAX_BODY_SIZE_BYTES=${MAX_BODY_SIZE_BYTES:-1000000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}

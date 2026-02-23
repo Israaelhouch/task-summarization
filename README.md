@@ -94,6 +94,43 @@ Test:
 pytest
 ```
 
+## Docker
+Build:
+```bash
+docker build -t task-summarization .
+```
+
+Run:
+```bash
+docker run --rm -p 8000:8000 task-summarization
+```
+
+By default the Docker image runs with gunicorn workers. Override with:
+```bash
+docker run --rm -p 8000:8000 -e WEB_CONCURRENCY=4 task-summarization
+```
+
+## Production Controls
+You can configure rate limiting and request size limits via environment variables:
+
+- `RATE_LIMIT_ENABLED` (default: `true`)
+- `RATE_LIMIT_MAX_REQUESTS` (default: `60`)
+- `RATE_LIMIT_WINDOW_SECONDS` (default: `60`)
+- `MAX_BODY_SIZE_BYTES` (default: `1000000`)
+- `LOG_LEVEL` (default: `INFO`)
+- `LOG_FORMAT` (default: `json`, use `text` for plain logs)
+- `WEB_CONCURRENCY` (default: `2`, number of gunicorn workers in Docker)
+
+For Docker Compose, you can copy `.env.example` to `.env` and override values there.
+
+Example:
+```bash
+RATE_LIMIT_MAX_REQUESTS=120 RATE_LIMIT_WINDOW_SECONDS=60 MAX_BODY_SIZE_BYTES=2000000 LOG_LEVEL=INFO uvicorn app.main:app
+```
+
+The API will return an `X-Request-Id` header on every response. You can also pass
+your own `X-Request-Id` or `X-Correlation-Id` header to preserve upstream IDs.
+
 ## Notes
 - Description and comment content may be Lexical JSON strings; text is extracted automatically.
 - Dates in summaries are formatted as DD/MM/YYYY.

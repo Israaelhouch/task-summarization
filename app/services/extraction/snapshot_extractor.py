@@ -105,15 +105,19 @@ def _extract_assignees(task: Dict[str, Any]) -> List[str]:
     return uniq
 
 
-def _lexical_to_text(s: str) -> str:
+def _lexical_to_text(value: Any) -> str:
     """
-    Lexical editor JSON is stored as a string.
+    Lexical editor JSON can be stored as a string or a parsed object.
     Extract all text nodes and join them.
     """
-    try:
-        obj = json.loads(s)
-    except Exception:
-        return s
+    obj = value
+    if isinstance(value, str):
+        try:
+            obj = json.loads(value)
+        except Exception:
+            return value
+    if not isinstance(obj, (dict, list)):
+        return str(obj)
 
     texts: List[str] = []
 
@@ -130,11 +134,32 @@ def _lexical_to_text(s: str) -> str:
                 walk(it)
 
     walk(obj)
-    return " ".join(texts).strip() or s
+    out = " ".join(texts).strip()
+    if out:
+        return out
+    if isinstance(value, str):
+        return value
+    return ""
 
 
 def _extract_description(task: Dict[str, Any]) -> Optional[str]:
     raw = task.get("shortDescription") or task.get("description") or task.get("markdownDescription")
+    if raw is None:
+        return None
+
+    if isinstance(raw, (dict, list)):
+        if isinstance(raw, dict) and "root" in raw:
+            txt = _lexical_to_text(raw)
+            if txt:
+                return shorten_text(txt, max_len=180)
+        if isinstance(raw, dict):
+            for key in ("text", "body", "content"):
+                v = _as_str(raw.get(key))
+                if v:
+                    return shorten_text(v, max_len=180)
+        txt = _lexical_to_text(raw)
+        return shorten_text(txt, max_len=180) if txt else None
+
     txt = _as_str(raw)
     if not txt:
         return None
