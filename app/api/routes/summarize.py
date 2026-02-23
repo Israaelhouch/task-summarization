@@ -4,7 +4,7 @@ from app.models.request_models import TaskSummarizeRequest
 from app.models.response_models import TaskSummarizeResponse
 from app.services.summarization_service import SummarizationService  # adjust import path if different
 
-router = APIRouter(prefix="/summarize", tags=["summarize"])
+router = APIRouter(prefix="/api/v1/summarize", tags=["summarize"])
 service = SummarizationService()
 
 

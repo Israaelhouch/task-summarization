@@ -20,7 +20,7 @@ def test_post_summarize_route():
         ],
     }
 
-    r = client.post("/summarize", json=payload)
+    r = client.post("/api/v1/summarize", json=payload)
     assert r.status_code == 200
     data = r.json()
     assert "summary" in data

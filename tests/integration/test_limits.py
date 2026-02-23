@@ -27,9 +27,9 @@ def test_rate_limit_enforced():
         )
         client = TestClient(app)
         payload = {"task": {"name": "X"}, "activity": []}
-        assert client.post("/summarize", json=payload).status_code == 200
-        assert client.post("/summarize", json=payload).status_code == 200
-        r = client.post("/summarize", json=payload)
+        assert client.post("/api/v1/summarize", json=payload).status_code == 200
+        assert client.post("/api/v1/summarize", json=payload).status_code == 200
+        r = client.post("/api/v1/summarize", json=payload)
         assert r.status_code == 429
     finally:
         app.state.settings = original_settings
@@ -53,7 +53,7 @@ def test_body_size_limit_enforced():
             "task": {"name": "X", "description": "a" * 500},
             "activity": [],
         }
-        r = client.post("/summarize", json=payload)
+        r = client.post("/api/v1/summarize", json=payload)
         assert r.status_code == 413
     finally:
         app.state.settings = original_settings
